@@ -1,0 +1,26 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-listedecourse-dev-210841-authRole",
+      "UnauthRoleArn": "arn:aws:iam::329013587339:role/amplify-listedecourse-dev-210841-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::329013587339:role/amplify-listedecourse-dev-210841-authRole",
+      "Region": "eu-central-1",
+      "DeploymentBucketName": "amplify-listedecourse-dev-210841-deployment",
+      "UnauthRoleName": "amplify-listedecourse-dev-210841-unauthRole",
+      "StackName": "amplify-listedecourse-dev-210841",
+      "StackId": "arn:aws:cloudformation:eu-central-1:329013587339:stack/amplify-listedecourse-dev-210841/6edf6a20-8b76-11ec-afde-02cf84dfb96a",
+      "AmplifyAppId": "d1pxm0v8uggc54"
+    },
+    "categories": {
+      "hosting": {
+        "amplifyhosting": {
+          "appId": "d1pxm0v8uggc54",
+          "type": "manual"
+        }
+      },
+      "auth": {
+        "listedecourse560407bd": {}
+      }
+    }
+  }
+}

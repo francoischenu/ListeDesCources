@@ -1,0 +1,9 @@
+[
+    { id: "2022-01-31T13:10:46.392Z", text: "carotte", quantity: "1" },
+    { id: "2022-01-31T13:10:56.643Z", text: "citron jaune", quantity: "0.5" },
+    { id: "2022-01-31T13:11:04.942Z", text: "crevettes", quantity: "125" },
+    { id: "2022-01-31T13:11:12.893Z", text: "curry", quantity: "0.5" },
+    { id: "2022-01-31T13:11:27.649Z", text: "haricots verts", quantity: "200" },
+    { id: "2022-01-31T13:11:35.490Z", text: "lait de coco", quantity: "150" },
+    { id: "2022-01-31T13:11:41.649Z", text: "riz", quantity: "150" },
+]
