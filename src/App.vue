@@ -1,152 +1,82 @@
 <template>
   <div id="app">
     <amplify-authenticator>
-      <div class="welcome">
-        <h1>Hey, {{user.username}}!</h1>
-        <amplify-sign-out></amplify-sign-out>
+      <div>
+        <MainMenu @switch-page="onSwitchPage"/>
+        <MyRecipes v-if="currentPage === 'recipes'"/>
+        <CourseIngredients v-else-if="currentPage === 'ingredients'"/>
+        <ShoppingList v-else-if="currentPage === 'shoppingList'"/>
+        <AddIngredientV2 v-else-if="currentPage === 'addIngredientV2'"/>
       </div>
-      <div class="form-body">
-        <form v-on:submit.prevent autocomplete="off">
-          <div>
-            <label>Name: </label>
-            <input v-model='form.name' class='input' autocomplete="off" />
-          </div>
-          <div>
-            <label>Description: </label>
-            <input v-model='form.description' class='input' autocomplete="off" />
-          </div>
-          <div>
-            <label>City: </label>
-            <input v-model='form.city' class='input' autocomplete="off" />
-          </div>
-          <button @click='createRestaurant' class='button'>Create</button>
-          <button @click='getData' class='button'>Refresh</button>
-        </form>
-      </div>
-      <div class="app-body">
-        <div v-if="loading" class="loading">Loading...</div>
-        <div class="card-container" v-if="!loading">
-          <div class="card" v-for="restaurant of sortedRestaurants" :key="restaurant.id">
-            <div class="remove"><button @click='deleteRestaurant(restaurant)' class='button'>Delete</button></div>
-            <div class="name">{{ restaurant.city }}</div>
-            <div class="price">{{ restaurant.name }}</div>
-            <div class="symbol">{{ restaurant.description }}</div>
-          </div>
-        </div>
-      </div>
-    <CourseIngredients />
-    <Recipes />
-    <ShoppingList />
     </amplify-authenticator>
   </div>
 </template>
 
-
 <script>
-import CourseIngredients from './components/CourseIngredients.vue'
-import Recipes from './components/Recipes.vue'
-import ShoppingList from './components/ShoppingList.vue'
-import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components'
-import { API, graphqlOperation } from 'aws-amplify';
-import { listRestaurants } from './graphql/queries';
-import { createRestaurant, deleteRestaurant } from './graphql/mutations';
-import { onCreateRestaurant, onDeleteRestaurant } from './graphql/subscriptions';
+import { ref } from 'vue';
+
+import CourseIngredients from './components/Ingredients/CourseIngredients.vue';
+import MyRecipes from './components/Recipes/MyRecipes.vue';
+import ShoppingList from './components/ShoppingList.vue';
+import MainMenu from './components/Layout/MainMenu.vue';
+import AddIngredientV2 from './components/Ingredients/AddIngredientV2.vue';
 
 export default {
   name: 'app',
   components: {
+    AddIngredientV2,
     CourseIngredients,
-    Recipes,
-    ShoppingList
+    MyRecipes,
+    ShoppingList,
+    MainMenu,
   },
-  data() {
+  setup() {
+    const currentPage = ref('shoppingList');
+
+    const onSwitchPage = (page) => {
+      currentPage.value = page;
+    };
+
     return {
-      user: { },
-      restaurants: [],
-      form: { },
-      loading: true
-    }
+      onSwitchPage,
+      currentPage,
+    };
   },
-  computed: {
-    sortedRestaurants() {
-      let restaurants = [...this.restaurants];
-      return restaurants.sort((a, b) => a.name.localeCompare(b.name));
-    }
-  },
-  created() {
-    // authentication state managament
-    onAuthUIStateChange((state, user) => {
-      // set current user and load data after login
-      if (state === AuthState.SignedIn) {
-        this.user = user;
-        this.getData();
-      }
-    })
-    //Subscribe to changes
-    API.graphql(graphqlOperation(onCreateRestaurant))
-    .subscribe((sourceData) => {
-      const newRestaurant = sourceData.value.data.onCreateRestaurant
-      if (newRestaurant) {
-        // skip our own mutations and duplicates
-        if (this.restaurants.some(r => r.id == newRestaurant.id)) return;
-        this.restaurants = [newRestaurant, ...this.restaurants];
-      } 
-    });
-    API.graphql(graphqlOperation(onDeleteRestaurant))
-    .subscribe((sourceData) => {
-      const deletedRestaurant = sourceData.value.data.onDeleteRestaurant
-      if (deletedRestaurant) {
-        this.restaurants = this.restaurants.filter((r) => r.id != deletedRestaurant.id);
-      } 
-    });
-  },
-  methods: {
-    async getData() {
-      try {
-        this.loading = true;
-        const response = await API.graphql(graphqlOperation(listRestaurants));
-        this.restaurants = response.data.listRestaurants.items;
-      }
-      catch (error) {
-        console.log('Error loading restaurants...', error);
-      }
-      finally {
-        this.loading = false;
-      }
-    },
-    async createRestaurant() {
-      const { name, description, city } = this.form
-      if (!name || !description || !city) return;
-    
-      const restaurant = { name, description, city, clientId: this.clientId };
-      try {
-        const response = await API.graphql(graphqlOperation(createRestaurant, { input: restaurant }))
-        console.log('Item created!')
-        this.restaurants = [...this.restaurants, response.data.createRestaurant];
-        this.form = { name: '', description: '', city: '' };
-      } catch (error) {
-        console.log('Error creating restaurant...', error)
-      }
-    },
-    async deleteRestaurant(restaurant) {
-      if (restaurant) {
-        try {
-          const { id } = restaurant;
-          await API.graphql(graphqlOperation(deleteRestaurant, { input: { id: id } }))
-          console.log('Item deleted!')
-          this.restaurants = this.restaurants.filter((r) => r.id != restaurant.id );
-        } catch (error) {
-          console.log('Error deleting restaurant...', error)
-        }
-      }
-    }
-  }
-}
+};
 </script>
 
-
-
 <style>
+* {
+  box-sizing: border-box;
+}
+html {
+  font-family: sans-serif;
+}
+body {
+  margin: 0;
+}
+.container {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+  max-width: 25rem;
+  margin: 3rem auto;
+  padding: 1rem;
+  border-radius: 12px;
+}
+button {
+  background-color: #1f001f;
+  border: 1px solid #1f001f;
+  border-radius: 0.125rem !important;
+  color: white;
+  font: inherit;
+  cursor: pointer;
+  padding: 0.5rem 1.5rem;
+  margin-right: 1rem;
+}
+button:hover,
+button:active {
+  background-color: #ffffff;
+  color: #1f001f;
+}
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -174,7 +104,7 @@ export default {
   --form-color: var(--white);
   --input-color: var(--deepSquidInk);
   --input-background-color: var(--white);
-  --font-family: "Amazon Ember","Helvetica Neue Light","Helvetica Neue","Helvetica" ,"Arial","sans-serif";
+  --font-family: "Amazon Ember","Helvetica Neue Light","Helvetica Neue","Helvetica" ,"Arial";
   --body-background: #F8F4F4;
   --component-width-desktop: 460px;
   --component-width-mobile: 100%;
@@ -216,48 +146,7 @@ a {
 h1 {
   font-weight: 300;
 }
-.app {
-  width: 100%;
-}
-.app-header {
-  color: white;
-  text-align: center;
-  background: linear-gradient(30deg, #f90 55%, #ffc300);
-  width: 100%;
-  margin: 0 0 1em 0;
-  padding: 3em 0 3em 0;
-  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.3);
-}
-.app-logo {
-  width: 126px;
-  margin: 0 auto;
-}
-.app-body {
-  width: 60%;
-  margin: 0 auto;
-  text-align: center;
-  min-height: 500px;
-}
-.form-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  display: -webkit-flex;
-  -webkit-justify-content: center;
-  -webkit-align-items: center;
-  flex-direction: row;
-  flex-wrap: wrap; 
-}
-.form-body button {
-  background-color: #ff9900;
-  font-size: 14px;
-  color: white;
-  text-transform: uppercase;
-  padding: 1em;
-  border: none;
-  cursor: pointer;
-  margin: 10px;
-}
+
 button:hover {
   opacity: 0.8;
 }
@@ -282,86 +171,5 @@ input {
   -webkit-align-items: center;
   flex-direction: row;
   flex-wrap: wrap;
-}
-.card {
-  background-color: white;
-  border-radius: 3px;
-  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.25);
-  min-width: 180px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 20px;
-  /* height: 100%; */
-  transition: transform .2s ease, box-shadow .2s ease;
-  backface-visibility: hidden;
-  margin: 25px;
-}
-.card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 14px 0 rgba(0,0,0,0.15);
-}
-.name {
-  font-style: italic;
-}
-.symbol {
-  color: #999;
-}
-.price, .loading {
-  font-weight: bold;
-  font-size: 2em;
-  line-height: 0.9;
-  margin: 10px;
-}
-.loading {
-  margin-top: 35px;
-}
-/* remove blue highlight */
-textarea:hover, 
-input:hover:not([type="checkbox"]), 
-textarea:active, 
-input:active:not([type="checkbox"]), 
-textarea:focus, 
-input:focus:not([type="checkbox"]),
-button:focus,
-button:active,
-button:hover,
-label:focus,
-.btn:active,
-.btn.active,
-select
-{
-  outline:0px !important;
-  -webkit-appearance:none;
-  box-shadow: none !important;
-}
-textarea {
-  background-color: #eee;
-  border-radius: 0 4px 4px 0;
-}
-textarea {
-  border-radius: 4px 0 0 4px;
-  border-right: 10px solid #dbdbdb;
-}
-.remove {
-  top: -15px;
-  position: relative;
-  align-self: flex-end;
-}
-.remove button {
-  background-color: #DD3F5B;
-  color: white;
-  border-radius: 31px;
-  border: 0px;
-}
-.welcome {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: row;
-}
-.welcome h1 {
-  margin-right: 40px;
 }
 </style>

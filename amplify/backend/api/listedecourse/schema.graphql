@@ -8,3 +8,96 @@ type Restaurant @model {
   description: String!
   city: String!
 }
+
+type Recipe @model {
+  name: String!
+  id: ID!
+  ingredients: [Ingredient!]
+}
+
+input RecipeInput{
+  name: String!
+  id: ID!
+  ingredients: [IngredientInput!]
+}
+
+type Ingredient @model {
+  name: String!
+  id: ID!
+  subCategory: SubCategory!
+  category: Category!
+  unit: Unit!
+}
+
+input IngredientInput{
+  name: String!
+  id: ID!
+  subCategory: SubCategoryInput!
+  category: CategoryInput!
+  unit: Unit!
+  quantity: Float!
+}
+
+enum Unit{
+  ML
+  G
+  CC
+  CS
+  PORTION
+}
+
+type Category @model {
+  name: String!
+  id: ID!
+}
+
+input CategoryInput{
+  name: String!
+  id: ID!
+}
+
+type SubCategory @model {
+  category: Category!
+  name: String!
+  id: ID!
+}
+
+input SubCategoryInput{
+  category: CategoryInput!
+  name: String!
+  id: ID!
+}
+
+type ShoppingList @model {
+  recipes: [Recipe!]
+  ingredients: [Ingredient!]
+}
+
+type Query{
+  recipe(
+    id: ID!
+  ): Recipe
+  recipes: [Recipe]
+  ingredients: [Ingredient]
+  shoppingLists: [ShoppingList]
+}
+
+type Mutation{
+  recipe(
+    name: String!
+    ingredients: [IngredientInput!]
+  ): Recipe
+  ingredient(
+    name: String!
+    subCategory: SubCategoryInput!
+    category: CategoryInput!
+  ): Ingredient
+  category(
+    name: String!
+  ): Category
+  subCategory(
+    name: String!
+    category: CategoryInput
+  ): SubCategory
+  shoppingList(recipes: [RecipeInput!]): ShoppingList
+}
